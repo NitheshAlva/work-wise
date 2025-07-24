@@ -1,0 +1,129 @@
+<div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-semibold text-dark" id="deleteCategoryModalLabel">
+                    Delete Category
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3 flex-shrink-0">
+                        <svg width="20" height="20" fill="currentColor" class="text-danger">
+                            <path d="M3 6h18l-1.5 9a2 2 0 01-2 1.5h-11A2 2 0 014.5 15L3 6zM8 2a1 1 0 011-1h2a1 1 0 011 1v1h3a1 1 0 110 2H6a1 1 0 110-2h3V2z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-grow-1">
+                        <p class="mb-2 text-dark">
+                            Are you sure you want to delete <strong id="categoryName"></strong>?
+                        </p>
+                        <div class="text-muted small" id="categoryImpact">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-light rounded p-3 text-muted small">
+                    <div class="d-flex align-items-center">
+                        <svg width="16" height="16" fill="currentColor" class="me-2 text-warning">
+                            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                        </svg>
+                        This action cannot be undone.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <form id="deleteCategoryForm" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="categoryIdInput" name="id" />
+                    <button type="submit" class="btn btn-danger">
+                        Delete Category
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteCategoryModal');
+    const categoryNameElement = document.getElementById('categoryName');
+    const categoryImpactElement = document.getElementById('categoryImpact');
+    const categoryIdInput = document.getElementById('categoryIdInput');
+    const deleteCategoryForm = document.getElementById('deleteCategoryForm');
+    
+    deleteModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const categoryId = button.getAttribute('data-category-id');
+        const categoryName = button.getAttribute('data-category-name');
+        const taskCount = parseInt(button.getAttribute('data-task-count')) || 0;
+        
+        // Update modal content
+        categoryNameElement.textContent = categoryName;
+        categoryIdInput.value = categoryId;
+        
+        // Update impact message
+        if (taskCount > 0) {
+            categoryImpactElement.innerHTML = `
+                <div class="mb-2">
+                    <strong>${taskCount}</strong> task${taskCount !== 1 ? 's' : ''} will be moved to <em>Uncategorized</em>.
+                </div>
+            `;
+        } else {
+            categoryImpactElement.innerHTML = `
+                <div class="text-success small">
+                    No tasks will be affected - this category is empty.
+                </div>
+            `;
+        }
+        
+        // Update form action
+        deleteCategoryForm.action = `/Categories/Delete/${categoryId}`;
+    });
+});
+</script>
+
+<style>
+.modal-content {
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+.modal-header {
+    padding: 1.5rem 1.5rem 0;
+}
+
+.modal-body {
+    padding: 0.5rem 1.5rem;
+}
+
+.modal-footer {
+    padding: 0 1.5rem 1.5rem;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.btn-close {
+    padding: 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+}
+
+.btn-light {
+    border-color: #e9ecef;
+    color: #6c757d;
+}
+
+.btn-light:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.btn-danger {
+    font-weight: 500;
+}
+</style>

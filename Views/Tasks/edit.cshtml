@@ -1,0 +1,170 @@
+@model workwise.Models.TaskItem
+
+@{
+    ViewData["Title"] = "Edit Task";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary me-3">
+        ← Back
+    </a>
+    <div>
+        <h1 class="h3 text-dark fw-normal mb-1">Edit Task</h1>
+        <p class="text-muted small mb-0">Update task details and settings</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 rounded-0 mb-4"></div>
+                    
+                    <input asp-for="Id" type="hidden" />
+                    
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label text-dark fw-normal">Task Title</label>
+                        <input asp-for="Title" class="form-control border-0 bg-light form-control-lg" 
+                               placeholder="Enter task title" maxlength="200" required />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label text-dark fw-normal">Description</label>
+                        <textarea asp-for="Description" class="form-control border-0 bg-light" rows="4" 
+                                  placeholder="Add task details (optional)" maxlength="1000"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="CategoryId" class="form-label text-dark fw-normal">Category</label>
+                            @Html.DropDownListFor(m => m.CategoryId, ViewBag.Categories as SelectList, 
+                                new { @class = "form-select border-0 bg-light", id = "categorySelect" })
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Priority" class="form-label text-dark fw-normal">Priority</label>
+                            @Html.DropDownListFor(m => m.Priority, ViewBag.Priorities as SelectList, 
+                                new { @class = "form-select border-0 bg-light" })
+                            <span asp-validation-for="Priority" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="DueDate" class="form-label text-dark fw-normal">Due Date</label>
+                            <input asp-for="DueDate" type="date" class="form-control border-0 bg-light" />
+                            <span asp-validation-for="DueDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label text-dark fw-normal">Quick Select</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        onclick="setDueDate(0)">Today</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        onclick="setDueDate(1)">Tomorrow</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        onclick="setDueDate(7)">Next Week</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        onclick="clearDueDate()">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Status -->
+                    <div class="mb-4">
+                        <div class="border rounded p-3 bg-light">
+                            <div class="form-check">
+                                <input asp-for="IsCompleted" class="form-check-input" type="checkbox" />
+                                <label asp-for="IsCompleted" class="form-check-label text-dark fw-normal">
+                                    Mark as completed
+                                </label>
+                            </div>
+                            <div class="text-muted small mt-2">
+                                Created @Model.CreatedDate.ToString("MMM dd, yyyy 'at' h:mm tt")
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex gap-2">
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    Cancel
+                                </a>
+                                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                                    View Details
+                                </a>
+                            </div>
+                            <button type="submit" class="btn btn-dark">
+                                Update Task
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Priority Guide -->
+        <div class="border rounded p-3 bg-light mt-3">
+            <div class="small text-muted">
+                <strong class="text-dark">Priority Guide:</strong>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <span class="badge bg-danger">High</span> <span class="text-muted">Urgent tasks</span>
+                    <span class="badge bg-warning text-dark">Medium</span> <span class="text-muted">Important tasks</span>
+                    <span class="badge bg-secondary">Low</span> <span class="text-muted">Nice to have</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function setDueDate(daysFromToday) {
+            const today = new Date();
+            const dueDate = new Date(today);
+            dueDate.setDate(today.getDate() + daysFromToday);
+            
+            const dueDateInput = document.getElementById('@Html.IdFor(m => m.DueDate)');
+            dueDateInput.value = dueDate.toISOString().split('T')[0];
+        }
+
+        function clearDueDate() {
+            const dueDateInput = document.getElementById('@Html.IdFor(m => m.DueDate)');
+            dueDateInput.value = '';
+        }
+    </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 0.2rem rgba(26, 26, 26, 0.1);
+        }
+
+        .btn-dark:focus {
+            box-shadow: 0 0 0 0.2rem rgba(26, 26, 26, 0.25);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .form-check-input:checked {
+            background-color: #1a1a1a;
+            border-color: #1a1a1a;
+        }
+
+        .form-check-input:focus {
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 0.25rem rgba(26, 26, 26, 0.25);
+        }
+    </style>
+}

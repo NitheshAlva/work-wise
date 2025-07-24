@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Welcome to WorkWise";
+}
+
+<div class="text-center py-4 pb-5">
+    <div class="container col-xl-8 col-lg-10">
+        <h1 class="display-5 fw-bold mb-3">
+            Organize Your Work, Simplify Your Life
+        </h1>
+        <p class="lead text-muted mb-4">
+            WorkWise is the clean, simple, and powerful way to manage your tasks, track your progress, and boost your productivity.
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
+            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
+        </div>
+    </div>
+</div>
+
+<div class="py-4">
+    <div class="row gx-4 gy-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 bg-white p-2">
+                <div class="card-body text-center">
+                    <div class="feature-icon text-primary mb-3">
+                        <i class="fas fa-tasks fa-2x"></i>
+                    </div>
+                    <h5 class="card-title fw-semibold">Smart Task Management</h5>
+                    <p class="card-text text-muted">Organize tasks with custom categories, priorities, and due dates. Never miss a deadline again.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 bg-white p-2">
+                <div class="card-body text-center">
+                    <div class="feature-icon text-primary mb-3">
+                        <i class="fas fa-tags fa-2x"></i>
+                    </div>
+                    <h5 class="card-title fw-semibold">Custom Categories</h5>
+                    <p class="card-text text-muted">Create personalized categories that match your workflow and organize tasks your way.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 bg-white p-2">
+                <div class="card-body text-center">
+                    <div class="feature-icon text-primary mb-3">
+                        <i class="fas fa-chart-pie fa-2x"></i>
+                    </div>
+                    <h5 class="card-title fw-semibold">Productivity Insights</h5>
+                    <p class="card-text text-muted">Track your progress with detailed analytics and understand your productivity patterns.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

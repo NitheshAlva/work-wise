@@ -1,0 +1,367 @@
+@model IEnumerable<workwise.Models.TaskItem>
+
+@{
+    ViewData["Title"] = "Tasks";
+    var Categories=ViewBag.Categories as IEnumerable<SelectListItem>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1 text-dark fw-normal">Tasks</h1>
+                    <p class="text-muted small mb-0">Manage your tasks and track progress</p>
+                </div>
+                <a asp-action="Create" class="btn btn-dark">
+                    Add Task
+                </a>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="bg-white border rounded-3 p-3 text-center shadow-sm">
+                        <div class="h4 mb-1 text-dark">@Model.Count()</div>
+                        <div class="small text-muted">Total Tasks</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="bg-white border rounded-3 p-3 text-center shadow-sm">
+                        <div class="h4 mb-1 text-success">@Model.Count(t => t.IsCompleted)</div>
+                        <div class="small text-muted">Completed</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="bg-white border rounded-3 p-3 text-center shadow-sm">
+                        <div class="h4 mb-1 text-warning">@Model.Count(t => !t.IsCompleted)</div>
+                        <div class="small text-muted">Pending</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="bg-white border rounded-3 p-3 text-center shadow-sm">
+                        <div class="h4 mb-1 text-danger">@Model.Count(t => !t.IsCompleted && t.DueDate < DateTime.Today)</div>
+                        <div class="small text-muted">Overdue</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white border rounded-3 p-4 mb-4 shadow-sm">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted">Search Tasks</label>
+                        <input type="text" class="form-control border-light" name="searchString" 
+                               value="@ViewData["CurrentFilter"]" placeholder="Search..." />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Category</label>
+                        <select class="form-select border-light" name="categoryFilter">
+                            <option value="">All Categories</option>
+                            @foreach (var category in Categories!)
+                            {
+                                <option value="@category.Value" selected="@(category.Value == ViewData["CurrentCategory"]?.ToString())">
+                                    @category.Text
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Status</label>
+                        <select class="form-select border-light" name="statusFilter">
+                            <option value="">All Tasks</option>
+                            <option value="pending" selected="@(ViewData["CurrentStatus"]?.ToString() == "pending")">Pending</option>
+                            <option value="completed" selected="@(ViewData["CurrentStatus"]?.ToString() == "completed")">Completed</option>
+                            <option value="overdue" selected="@(ViewData["CurrentStatus"]?.ToString() == "overdue")">Overdue</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Sort By</label>
+                        <select class="form-select border-light" name="sortOrder">
+                            <option value="">Title (A-Z)</option>
+                            <option value="title_desc">Title (Z-A)</option>
+                            <option value="Date">Due Date (Earliest)</option>
+                            <option value="date_desc">Due Date (Latest)</option>
+                            <option value="Priority">Priority (Low-High)</option>
+                            <option value="priority_desc">Priority (High-Low)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-light border">
+                            Apply Filters
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tasks List -->
+            @if (!Model.Any())
+            {
+                <div class="bg-white border rounded-3 p-5 text-center shadow-sm">
+                    <div class="text-muted mb-4">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="mx-auto mb-3">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14,2 14,8 20,8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10,9 9,10 8,9"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="h5 text-muted mb-2">No tasks found</h3>
+                    <p class="text-muted mb-4">Create your first task to get started</p>
+                    <a asp-action="Create" class="btn btn-dark">
+                        Create First Task
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="bg-white border rounded-3 shadow-sm overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light border-bottom">
+                                <tr>
+                                    <th class="border-0 px-4 py-3" width="50">
+                                        <input type="checkbox" class="form-check-input" id="selectAll">
+                                    </th>
+                                    <th class="border-0 px-4 py-3">
+                                        @Html.ActionLink("Task", "Index", new { sortOrder = ViewData["TitleSortParm"] }, 
+                                                        new { @class = "text-decoration-none text-dark fw-medium" })
+                                    </th>
+                                    <th class="border-0 px-4 py-3">Category</th>
+                                    <th class="border-0 px-4 py-3">
+                                        @Html.ActionLink("Priority", "Index", new { sortOrder = ViewData["PrioritySortParm"] }, 
+                                                        new { @class = "text-decoration-none text-dark fw-medium" })
+                                    </th>
+                                    <th class="border-0 px-4 py-3">
+                                        @Html.ActionLink("Due Date", "Index", new { sortOrder = ViewData["DateSortParm"] }, 
+                                                        new { @class = "text-decoration-none text-dark fw-medium" })
+                                    </th>
+                                    <th class="border-0 px-4 py-3" width="150">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var task in Model)
+                                {
+                                    var isOverdue = !task.IsCompleted && task.DueDate < DateTime.Today;
+                                    
+                                    <tr class="@(task.IsCompleted ? "table-light" : "")">
+                                        <td class="px-4 py-3">
+                                            <input class="form-check-input task-toggle" 
+                                                   type="checkbox" 
+                                                   data-task-id="@task.Id"
+                                                   @(task.IsCompleted ? "checked" : "") />
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                                <div class="fw-medium text-dark mb-1">@task.Title</div>
+                                                @if (!string.IsNullOrEmpty(task.Description))
+                                                {
+                                                    <div class="small text-muted">
+                                                        @(task.Description.Length > 80 ? task.Description.Substring(0, 80) + "..." : task.Description)
+                                                    </div>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            @if (task.Category != null)
+                                            {
+                                                <span class="badge bg-light text-dark border">@task.Category.Name</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-light text-muted border">No Category</span>
+                                            }
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            @switch (task.Priority)
+                                            {
+                                                case Priority.High:
+                                                    <span class="badge bg-light text-danger border">High</span>
+                                                    break;
+                                                case Priority.Medium:
+                                                    <span class="badge bg-light text-warning border">Medium</span>
+                                                    break;
+                                                case Priority.Low:
+                                                    <span class="badge bg-light text-success border">Low</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            @if (task.DueDate.HasValue)
+                                            {
+                                                <div class="@(isOverdue ? "text-danger fw-medium" : "text-dark")">
+                                                    @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                </div>
+                                                @if (isOverdue)
+                                                {
+                                                    <small class="text-danger">Overdue</small>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">No due date</span>
+                                            }
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="d-flex gap-1">
+                                                <a asp-action="Details" asp-route-id="@task.Id" 
+                                                   class="btn btn-sm btn-light border" title="View Details">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                        <circle cx="12" cy="12" r="3"></circle>
+                                                    </svg>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@task.Id" 
+                                                   class="btn btn-sm btn-light border" title="Edit">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                    </svg>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-light border text-danger" 
+                                                        onclick="confirmDelete(@task.Id, '@task.Title')" title="Delete">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <polyline points="3,6 5,6 21,6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Delete Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <p class="text-muted">Are you sure you want to delete "<span id="taskTitle" class="fw-medium text-dark"></span>"?</p>
+                <p class="small text-muted mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Delete Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Task toggle functionality
+            const toggles = document.querySelectorAll('.task-toggle');
+            
+            toggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const taskId = this.dataset.taskId;
+                    const isChecked = this.checked;
+                    
+                    fetch('/Tasks/Toggle/' + taskId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': '@Html.AntiForgeryToken().ToString()'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.message, 'success');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            this.checked = !isChecked;
+                            showToast(data.message || 'Error updating task', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.checked = !isChecked;
+                        showToast('Error updating task', 'error');
+                    });
+                });
+            });
+
+            // Select all functionality
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) {
+                selectAll.addEventListener('change', function() {
+                    const checkboxes = document.querySelectorAll('.task-toggle');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                });
+            }
+        });
+
+        function confirmDelete(taskId, taskTitle) {
+            document.getElementById('taskTitle').textContent = taskTitle;
+            document.getElementById('deleteForm').action = '/Tasks/Delete/' + taskId;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed shadow-sm`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">${message}</div>
+                    <button type="button" class="btn-close btn-close-sm ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 4000);
+        }
+    </script>
+}
+
+<style>
+    .table th {
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        border-color: #f3f4f6;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #d1d5db;
+        box-shadow: 0 0 0 0.125rem rgba(0, 0, 0, 0.1);
+    }
+</style>

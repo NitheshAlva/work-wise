@@ -1,0 +1,151 @@
+@model IEnumerable<workwise.Models.Category>
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 text-dark fw-normal mb-1">Categories</h1>
+        <p class="text-muted small mb-0">Organize and manage your task categories</p>
+    </div>
+    <a asp-action="Create" class="btn btn-dark">
+        Add Category
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-0 rounded-0 mb-4" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Model.Any())
+{
+    <div class="row g-3">
+        @foreach (var category in Model)
+        {
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle me-3" 
+                                 style="width: 12px; height: 12px; background-color: @category.Color;"></div>
+                            <h5 class="card-title mb-0 text-dark">@category.Name</h5>
+                        </div>
+                        
+                        <div class="text-muted small mb-3">
+                            Created @category.CreatedDate.ToString("MMM dd, yyyy")
+                        </div>
+                        
+                        <div class="mb-4">
+                            <span class="badge bg-light text-dark border">
+                                @(category.Tasks?.Count ?? 0) tasks
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a asp-action="Details" asp-route-id="@category.Id" 
+                               class="btn btn-outline-secondary btn-sm flex-fill">
+                                View
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@category.Id" 
+                               class="btn btn-outline-dark btn-sm flex-fill">
+                                Edit
+                            </a>
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteCategoryModal"
+                                data-category-id="@category.Id"
+                                data-category-name="@category.Name"
+                                data-task-count="@(category.Tasks?.Count ?? 0)">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @await Html.PartialAsync("_DeleteCategoryModal")
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="border rounded p-4 bg-light">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <span class="h4 text-dark mb-0">@Model.Count()</span>
+                        </div>
+                        <small class="text-muted">Total Categories</small>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <span class="h4 text-dark mb-0">@Model.Sum(c => c.Tasks?.Count ?? 0)</span>
+                        </div>
+                        <small class="text-muted">Total Tasks</small>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <span class="h4 text-dark mb-0">@(Model.Any() ? Math.Round(Model.Average(c => c.Tasks?.Count ?? 0), 1) : 0)</span>
+                        </div>
+                        <small class="text-muted">Average per Category</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                        <span class="text-muted h2 mb-0">📁</span>
+                    </div>
+                </div>
+                
+                <h3 class="text-dark mb-3">No categories yet</h3>
+                <p class="text-muted mb-4">
+                    Create your first category to start organizing your tasks effectively.
+                </p>
+                
+                <a asp-action="Create" class="btn btn-dark btn-lg mb-4">
+                    Create First Category
+                </a>
+                
+                <div class="border-top pt-4 mt-4">
+                    <h6 class="text-muted mb-3">Popular category ideas:</h6>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        <span class="badge bg-light text-dark border">Work</span>
+                        <span class="badge bg-light text-dark border">Personal</span>
+                        <span class="badge bg-light text-dark border">Learning</span>
+                        <span class="badge bg-light text-dark border">Health</span>
+                        <span class="badge bg-light text-dark border">Projects</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Subtle hover effect for cards
+        $(document).ready(function() {
+            $('.card').hover(
+                function() { 
+                    $(this).removeClass('shadow-sm').addClass('shadow'); 
+                },
+                function() { 
+                    $(this).removeClass('shadow').addClass('shadow-sm'); 
+                }
+            );
+        });
+    </script>
+}

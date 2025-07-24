@@ -1,0 +1,267 @@
+@model workwise.Models.TaskItem
+
+@{
+    ViewData["Title"] = "Task Details";
+    var isOverdue = !Model.IsCompleted && Model.DueDate < DateTime.Today;
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1 text-dark fw-normal">Task Details</h1>
+                    <p class="text-muted small mb-0">View and manage task information</p>
+                </div>
+                <div>
+                    @if (Model.IsCompleted)
+                    {
+                        <span class="badge bg-light text-success border">Completed</span>
+                    }
+                    else if (isOverdue)
+                    {
+                        <span class="badge bg-light text-danger border">Overdue</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-light text-warning border">Pending</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Task Title -->
+            <div class="bg-white border rounded-3 p-4 mb-4 shadow-sm">
+                <h2 class="h4 mb-0 @(Model.IsCompleted ? "text-decoration-line-through text-muted" : "text-dark")">
+                    @Model.Title
+                </h2>
+            </div>
+
+            <!-- Task Information Grid -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-4">
+                    <div class="bg-white border rounded-3 p-4 h-100 shadow-sm">
+                        <h3 class="h6 text-muted mb-3 fw-normal">Task Information</h3>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Priority</label>
+                            <div>
+                                @switch (Model.Priority)
+                                {
+                                    case Priority.High:
+                                        <span class="badge bg-light text-danger border">High Priority</span>
+                                        break;
+                                    case Priority.Medium:
+                                        <span class="badge bg-light text-warning border">Medium Priority</span>
+                                        break;
+                                    case Priority.Low:
+                                        <span class="badge bg-light text-success border">Low Priority</span>
+                                        break;
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Category</label>
+                            <div>
+                                @if (Model.Category != null)
+                                {
+                                    <span class="badge bg-light text-dark border">@Model.Category.Name</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-muted border">No Category</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label small text-muted mb-1">Status</label>
+                            <div>
+                                @if (Model.IsCompleted)
+                                {
+                                    <span class="text-success small">Completed</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">In Progress</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="bg-white border rounded-3 p-4 h-100 shadow-sm">
+                        <h3 class="h6 text-muted mb-3 fw-normal">Timeline</h3>
+                        
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Due Date</label>
+                            <div>
+                                @if (Model.DueDate.HasValue)
+                                {
+                                    <div class="@(isOverdue ? "text-danger" : "text-dark")">
+                                        @Model.DueDate.Value.ToString("MMMM dd, yyyy")
+                                    </div>
+                                    <small class="text-muted">
+                                        @{
+                                            var daysDiff = (Model.DueDate.Value.Date - DateTime.Today).Days;
+                                        }
+                                        @if (daysDiff < 0)
+                                        {
+                                            <span class="text-danger">@Math.Abs(daysDiff) day(s) overdue</span>
+                                        }
+                                        else if (daysDiff == 0)
+                                        {
+                                            <span class="text-warning">Due today</span>
+                                        }
+                                        else if (daysDiff == 1)
+                                        {
+                                            <span>Due tomorrow</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Due in @daysDiff day(s)</span>
+                                        }
+                                    </small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No due date set</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">Created</label>
+                            <div class="small">@Model.CreatedDate.ToString("MMMM dd, yyyy")</div>
+                        </div>
+
+                        <div>
+                            <label class="form-label small text-muted mb-1">Days Active</label>
+                            <div class="small">@((DateTime.Now - Model.CreatedDate).Days) day(s)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div class="bg-white border rounded-3 p-4 mb-4 shadow-sm">
+                    <h3 class="h6 text-muted mb-3 fw-normal">Description</h3>
+                    <p class="mb-0 text-dark" style="white-space: pre-wrap; line-height: 1.6;">@Model.Description</p>
+                </div>
+            }
+
+            <!-- Actions -->
+            <div class="bg-white border rounded-3 p-4 mb-4 shadow-sm">
+                <div class="d-flex flex-wrap gap-2">
+                    @if (!Model.IsCompleted)
+                    {
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleTaskStatus(@Model.Id, true)">
+                            Mark as Completed
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleTaskStatus(@Model.Id, false)">
+                            Mark as Pending
+                        </button>
+                    }
+                    
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+                        Edit Task
+                    </a>
+                    
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmDelete(@Model.Id, '@Model.Title')">
+                        Delete Task
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="mb-4">
+                <a asp-action="Index" class="btn btn-light border">
+                    ← Back to Tasks
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Delete Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <p class="text-muted">Are you sure you want to delete "<span id="taskTitle" class="fw-medium text-dark"></span>"?</p>
+                <p class="small text-muted mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Delete Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleTaskStatus(taskId, markCompleted) {
+            fetch('/Tasks/Toggle/' + taskId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': '@Html.AntiForgeryToken().ToString()'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Error updating task', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating task', 'error');
+            });
+        }
+
+        function confirmDelete(taskId, taskTitle) {
+            document.getElementById('taskTitle').textContent = taskTitle;
+            document.getElementById('deleteForm').action = '/Tasks/Delete/' + taskId;
+            
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} border-0 position-fixed shadow-sm`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">${message}</div>
+                    <button type="button" class="btn-close btn-close-sm ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 4000);
+        }
+    </script>
+}

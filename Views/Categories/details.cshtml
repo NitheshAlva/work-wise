@@ -1,0 +1,249 @@
+@model workwise.Models.Category
+
+@{
+    ViewData["Title"] = "Category Details";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex align-items-center">
+        <a asp-action="Index" class="btn btn-outline-secondary me-3">
+            ← Back
+        </a>
+        <div>
+            <h1 class="h3 text-dark fw-normal mb-1">@Model.Name</h1>
+            <p class="text-muted small mb-0">Created @Model.CreatedDate.ToString("MMMM dd, yyyy")</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-dark">
+            Edit
+        </a>
+        <button type="button" class="btn btn-outline-danger btn-sm" 
+            data-bs-toggle="modal" 
+            data-bs-target="#deleteCategoryModal"
+            data-category-id="@Model.Id"
+            data-category-name="@Model.Name"
+            data-task-count="@(Model.Tasks?.Count ?? 0)">
+            Delete
+        </button>
+    </div>
+    @await Html.PartialAsync("_DeleteCategoryModal")
+</div>
+
+<!-- Category Overview -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle me-3"
+                         style="width: 24px; height: 24px; background-color: @Model.Color;"></div>
+                    <div>
+                        <h4 class="text-dark mb-1">@Model.Name</h4>
+                        <span class="badge bg-light text-dark border">@Model.Color.ToUpper()</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body text-center p-4">
+                <div class="h2 text-dark mb-1">@(Model.Tasks?.Count ?? 0)</div>
+                <div class="text-muted small">Total Tasks</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body text-center p-4">
+                <div class="h2 text-success mb-1">@(Model.Tasks?.Count(t => t.IsCompleted) ?? 0)</div>
+                <div class="text-muted small">Completed</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body text-center p-4">
+                <div class="h2 text-warning mb-1">@(Model.Tasks?.Count(t => !t.IsCompleted) ?? 0)</div>
+                <div class="text-muted small">Pending</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body text-center p-4">
+                <div class="h2 text-danger mb-1">@(Model.Tasks?.Count(t => !t.IsCompleted && t.DueDate.HasValue && t.DueDate < DateTime.Now) ?? 0)</div>
+                <div class="text-muted small">Overdue</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Tasks != null && Model.Tasks.Any())
+{
+    var completionPercentage = (double)(Model.Tasks.Count(t => t.IsCompleted)) / Model.Tasks.Count * 100;
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-dark mb-0">Completion Progress</h5>
+                <span class="text-muted">@completionPercentage.ToString("F1")%</span>
+            </div>
+            <div class="progress bg-light" style="height: 8px;">
+                <div class="progress-bar" 
+                     role="progressbar" 
+                     style="width: @completionPercentage%; background-color: @Model.Color;" 
+                     aria-valuenow="@completionPercentage" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Tasks List -->
+@if (Model.Tasks != null && Model.Tasks.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+            <h5 class="text-dark mb-0">Tasks (@Model.Tasks.Count)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 py-3" width="60px">Status</th>
+                            <th class="border-0 py-3">Task</th>
+                            <th class="border-0 py-3" width="100px">Priority</th>
+                            <th class="border-0 py-3" width="130px">Due Date</th>
+                            <th class="border-0 py-3" width="100px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in Model.Tasks.OrderBy(t => t.IsCompleted).ThenBy(t => t.DueDate))
+                        {
+                            var isOverdue = task.DueDate.HasValue && task.DueDate < DateTime.Now && !task.IsCompleted;
+                            var rowClass = task.IsCompleted ? "text-muted" : (isOverdue ? "bg-light border-start border-danger border-3" : "");
+                            
+                            <tr class="@rowClass">
+                                <td class="text-center py-3">
+                                    @if (task.IsCompleted)
+                                    {
+                                        <span class="text-success">✓</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">○</span>
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    <div class="@(task.IsCompleted ? "text-decoration-line-through" : "")">
+                                        <div class="fw-medium text-dark">@task.Title</div>
+                                        @if (!string.IsNullOrEmpty(task.Description))
+                                        {
+                                            <div class="text-muted small mt-1">@task.Description</div>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    @switch (task.Priority)
+                                    {
+                                        case Priority.High:
+                                            <span class="badge bg-danger">High</span>
+                                            break;
+                                        case Priority.Medium:
+                                            <span class="badge bg-warning text-dark">Medium</span>
+                                            break;
+                                        case Priority.Low:
+                                            <span class="badge bg-secondary">Low</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    @if (task.DueDate.HasValue)
+                                    {
+                                        var dueDateClass = isOverdue ? "text-danger fw-medium" : 
+                                                          (task.DueDate.Value.Date == DateTime.Today ? "text-warning fw-medium" : "text-muted");
+                                        <div class="@dueDateClass">
+                                            @task.DueDate.Value.ToString("MMM dd")
+                                            @if (isOverdue)
+                                            {
+                                                <span class="ms-1">⚠️</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td class="py-3">
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-outline-secondary btn-sm" title="Edit Task">
+                                            Edit
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <div class="mb-4">
+                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" 
+                     style="width: 80px; height: 80px;">
+                    <span class="text-muted h2 mb-0">📋</span>
+                </div>
+            </div>
+            <h4 class="text-dark mb-3">No tasks yet</h4>
+            <p class="text-muted mb-4">This category doesn't have any tasks assigned to it.</p>
+            <a href="#" class="btn btn-dark">
+                Add First Task
+            </a>
+        </div>
+    </div>
+}
+
+@functions {
+    bool IsLightColor(string hexColor)
+    {
+        try
+        {
+            var color = System.Drawing.ColorTranslator.FromHtml(hexColor);
+            var brightness = (color.R * 299 + color.G * 587 + color.B * 114) / 1000;
+            return brightness > 128;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,.025);
+    }
+    
+    .progress-bar {
+        transition: width 0.6s ease;
+        border-radius: 4px;
+    }
+    
+    .card {
+        transition: all 0.2s ease;
+    }
+</style>
