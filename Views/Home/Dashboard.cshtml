@@ -83,7 +83,8 @@
                                         }
                                     </div>
                                     <div class="flex-grow-1">
-                                        <div class="fw-medium text-dark @(task.IsCompleted ? "text-decoration-line-through" : "")">
+                                        <div class="fw-medium text-dark @(task.IsCompleted ? "text-decoration-line-through" : "")" style="cursor: pointer;" 
+                                     onclick="location.href='@Url.Action("Details", "Tasks", new { id = task.Id })'">
                                             @task.Title
                                         </div>
                                         @if (task.Category != null)

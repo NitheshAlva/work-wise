@@ -8,7 +8,7 @@ public class TaskItem
     [BindNever]
     public string UserId { get; set; } = string.Empty;
     public string Title { get; set; } = null!;
-    public string Description { get; set; } = null!;
+    public string? Description { get; set; }
     public DateTime? DueDate { get; set; }
     public Priority Priority { get; set; }
     public int? CategoryId { get; set; }

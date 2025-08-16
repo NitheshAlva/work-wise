@@ -70,3 +70,5 @@ secrets.json
 
 # Optional: Ignore generated EF Core migrations snapshot
 Migrations/*ModelSnapshot.cs
+
+Dockerfile

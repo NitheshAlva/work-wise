@@ -39,7 +39,7 @@ public class TasksController : Controller
         if (!String.IsNullOrEmpty(searchString))
         {
             tasksQuery = tasksQuery.Where(t => t.Title.Contains(searchString) 
-                || t.Description.Contains(searchString));
+                ||(t.Description != null && t.Description.Contains(searchString)));
         }
 
         if (categoryFilter.HasValue)
@@ -67,22 +67,22 @@ public class TasksController : Controller
         switch (sortOrder)
         {
             case "title_desc":
-                tasksQuery = tasksQuery.OrderByDescending(t => t.Title);
+                tasksQuery = tasksQuery.OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Title);
                 break;
             case "Date":
-                tasksQuery = tasksQuery.OrderBy(t => t.DueDate);
+                tasksQuery = tasksQuery.OrderBy(t => t.IsCompleted).ThenBy(t => t.DueDate);
                 break;
             case "date_desc":
-                tasksQuery = tasksQuery.OrderByDescending(t => t.DueDate);
+                tasksQuery = tasksQuery.OrderBy(t => t.IsCompleted).ThenByDescending(t => t.DueDate);
                 break;
             case "Priority":
-                tasksQuery = tasksQuery.OrderBy(t => t.Priority);
+                tasksQuery = tasksQuery.OrderBy(t => t.IsCompleted).ThenBy(t => t.Priority);
                 break;
             case "priority_desc":
-                tasksQuery = tasksQuery.OrderByDescending(t => t.Priority);
+                tasksQuery = tasksQuery.OrderBy(t => t.IsCompleted).ThenByDescending(t => t.Priority);
                 break;
             default:
-                tasksQuery = tasksQuery.OrderBy(t => t.Title);
+                tasksQuery = tasksQuery.OrderBy(t => t.IsCompleted).ThenBy(t => t.Title);
                 break;
         }
 

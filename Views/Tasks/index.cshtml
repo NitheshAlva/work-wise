@@ -57,7 +57,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small text-muted">Category</label>
-                        <select class="form-select border-light" name="categoryFilter">
+                        <select style="cursor: pointer;" class="form-select border-light" name="categoryFilter">
                             <option value="">All Categories</option>
                             @foreach (var category in Categories!)
                             {
@@ -69,7 +69,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small text-muted">Status</label>
-                        <select class="form-select border-light" name="statusFilter">
+                        <select style="cursor: pointer;" class="form-select border-light" name="statusFilter">
                             <option value="">All Tasks</option>
                             <option value="pending" selected="@(ViewData["CurrentStatus"]?.ToString() == "pending")">Pending</option>
                             <option value="completed" selected="@(ViewData["CurrentStatus"]?.ToString() == "completed")">Completed</option>
@@ -78,7 +78,7 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small text-muted">Sort By</label>
-                        <select class="form-select border-light" name="sortOrder">
+                        <select style="cursor: pointer;" class="form-select border-light" name="sortOrder">
                             <option value="">Title (A-Z)</option>
                             <option value="title_desc">Title (Z-A)</option>
                             <option value="Date">Due Date (Earliest)</option>
@@ -126,7 +126,6 @@
                             <thead class="bg-light border-bottom">
                                 <tr>
                                     <th class="border-0 px-4 py-3" width="50">
-                                        <input type="checkbox" class="form-check-input" id="selectAll">
                                     </th>
                                     <th class="border-0 px-4 py-3">
                                         @Html.ActionLink("Task", "Index", new { sortOrder = ViewData["TitleSortParm"] }, 
@@ -151,12 +150,12 @@
                                     
                                     <tr class="@(task.IsCompleted ? "table-light" : "")">
                                         <td class="px-4 py-3">
-                                            <input class="form-check-input task-toggle" 
+                                            <input style="cursor: pointer;" class="form-check-input task-toggle" 
                                                    type="checkbox" 
                                                    data-task-id="@task.Id"
                                                    @(task.IsCompleted ? "checked" : "") />
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-3" style="cursor: pointer;" onclick="location.href='@Url.Action("Details", "Tasks", new { id = task.Id })'">
                                             <div class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
                                                 <div class="fw-medium text-dark mb-1">@task.Title</div>
                                                 @if (!string.IsNullOrEmpty(task.Description))
