@@ -1,0 +1,245 @@
+@model RecurringTaskTemplate
+
+@{
+    ViewData["Title"] = "Edit Recurring Task";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <h2>✏️ Edit Recurring Task</h2>
+        <p class="text-muted">
+            <strong>Note:</strong> Changes will only affect future tasks. Already generated tasks remain unchanged.
+        </p>
+
+        <form asp-action="Edit">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="CreatedDate" />
+            <input type="hidden" asp-for="LastGeneratedDate" />
+            <input type="hidden" asp-for="NextDueDate" />
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Task Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label"></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Priority" class="form-label"></label>
+                                <select asp-for="Priority" class="form-select" asp-items="Html.GetEnumSelectList<Priority>()"></select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="CategoryId" class="form-label">Category</label>
+                                <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                    <option value="">No Category</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Recurrence Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input value="@Model.StartDate.ToString("yyyy-MM-dd")" class="form-control" type="date" disabled />
+                                <small class="form-text text-muted">Start date cannot be changed</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="RecurrenceType" class="form-label">Repeat</label>
+                                <select asp-for="RecurrenceType" class="form-select" id="recurrenceType" asp-items="Html.GetEnumSelectList<RecurrenceType>()"></select>
+                                <span asp-validation-for="RecurrenceType" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="RecurrenceInterval" class="form-label">Every</label>
+                                <div class="input-group">
+                                    <input asp-for="RecurrenceInterval" class="form-control" type="number" min="1" />
+                                    <span class="input-group-text" id="intervalLabel">day(s)</span>
+                                </div>
+                                <span asp-validation-for="RecurrenceInterval" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="weeklyOptions" class="mb-3" style="display: none;">
+                                <label class="form-label">Days of Week</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="1" id="monday">
+                                        <label class="form-check-label" for="monday">Mon</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="2" id="tuesday">
+                                        <label class="form-check-label" for="tuesday">Tue</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="3" id="wednesday">
+                                        <label class="form-check-label" for="wednesday">Wed</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="4" id="thursday">
+                                        <label class="form-check-label" for="thursday">Thu</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="5" id="friday">
+                                        <label class="form-check-label" for="friday">Fri</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="6" id="saturday">
+                                        <label class="form-check-label" for="saturday">Sat</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="0" id="sunday">
+                                        <label class="form-check-label" for="sunday">Sun</label>
+                                    </div>
+                                </div>
+                                <input type="hidden" asp-for="DaysOfWeek" id="hiddenDaysOfWeek" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="EndDate" class="form-label">End Date (Optional)</label>
+                                <input asp-for="EndDate" class="form-control" type="date" />
+                                <small class="form-text text-muted">Leave empty for no end date</small>
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="MaxOccurrences" class="form-label">Max Occurrences (Optional)</label>
+                                <input asp-for="MaxOccurrences" class="form-control" type="number" min="1" />
+                                <small class="form-text text-muted">Leave empty for unlimited</small>
+                                <span asp-validation-for="MaxOccurrences" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Recurring Task
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>📊 Template Status</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                        @(Model.IsActive ? "Active" : "Paused")
+                    </span>
+                </p>
+                <p><strong>Created:</strong> @Model.CreatedDate.ToString("MMM dd, yyyy")</p>
+                @if (Model.LastGeneratedDate.HasValue)
+                {
+                    <p><strong>Last Generated:</strong> @Model.LastGeneratedDate.Value.ToString("MMM dd, yyyy")</p>
+                }
+                <p><strong>Next Due:</strong> @Model.NextDueDate.ToString("MMM dd, yyyy")</p>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5>⚠️ Important Notes</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-info-circle text-info"></i>
+                        Changes only affect future tasks
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-calendar text-warning"></i>
+                        Start date cannot be modified
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-clock text-success"></i>
+                        New schedule takes effect immediately
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recurrenceType = document.getElementById('recurrenceType');
+    const weeklyOptions = document.getElementById('weeklyOptions');
+    const intervalLabel = document.getElementById('intervalLabel');
+    const dayCheckboxes = document.querySelectorAll('#weeklyOptions input[type="checkbox"]');
+    const hiddenDaysOfWeek = document.getElementById('hiddenDaysOfWeek');
+
+    function updateRecurrenceOptions() {
+        const selectedType = recurrenceType.value;
+        
+        // Update interval label
+        switch(selectedType) {
+            case '1': intervalLabel.textContent = 'day(s)'; break;
+            case '2': intervalLabel.textContent = 'week(s)'; break;
+            case '3': intervalLabel.textContent = 'month(s)'; break;
+            case '4': intervalLabel.textContent = 'year(s)'; break;
+        }
+        
+        // Show/hide weekly options
+        weeklyOptions.style.display = selectedType === '2' ? 'block' : 'none';
+    }
+
+    function updateDaysOfWeekField() {
+        const selectedDays = Array.from(dayCheckboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        hiddenDaysOfWeek.value = selectedDays.join(',');
+    }
+
+    recurrenceType.addEventListener('change', updateRecurrenceOptions);
+    dayCheckboxes.forEach(cb => cb.addEventListener('change', updateDaysOfWeekField));
+    
+    updateRecurrenceOptions();
+    
+    // Initialize days of week from existing value
+    if (hiddenDaysOfWeek.value) {
+        const selectedDays = hiddenDaysOfWeek.value.split(',');
+        dayCheckboxes.forEach(cb => {
+            cb.checked = selectedDays.includes(cb.value);
+        });
+    }
+});
+</script>

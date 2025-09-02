@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using workwise.Data;
+using workwise.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,10 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 
 // Add MVC services
 builder.Services.AddControllersWithViews();
+
+// Add application services
+builder.Services.AddScoped<IRecurringTaskService, RecurringTaskService>();
+builder.Services.AddHostedService<RecurringTaskBackgroundService>();
 
 var app = builder.Build();
 

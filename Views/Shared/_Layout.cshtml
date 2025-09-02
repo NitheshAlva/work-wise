@@ -39,6 +39,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Categories" asp-action="Index">Categories</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="RecurringTasks" asp-action="Index"> Recurring Tasks</a>
+                            </li>
                         }
                     </ul>
                     <partial name="_LoginPartial" />
@@ -52,12 +55,6 @@
             @RenderBody()
         </main>
     </div>
-
-    @* <footer class="footer border-top text-muted text-center py-3">
-        <div class="container">
-            &copy; @DateTime.Now.Year - WorkWise
-        </div>
-    </footer> *@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

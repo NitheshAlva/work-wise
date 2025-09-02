@@ -1,0 +1,224 @@
+@model List<RecurringTaskTemplate>
+
+@{
+    ViewData["Title"] = "Recurring Tasks";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>🔄 Recurring Tasks</h2>
+        <p class="text-muted">Manage your recurring task templates</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Recurring Task
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var template in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card @(template.IsActive ? "" : "border-secondary")">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <h6 class="mb-0 me-2">@template.Title</h6>
+                            @if (!template.IsActive)
+                            {
+                                <span class="badge bg-secondary">Paused</span>
+                            }
+                        </div>
+                        @if (template.Category != null)
+                        {
+                            <span class="badge rounded-pill" style="background-color: @template.Category.Color">
+                                @template.Category.Name
+                            </span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(template.Description))
+                        {
+                            <p class="card-text">@template.Description</p>
+                        }
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Repeats:</strong> 
+                                @switch(template.RecurrenceType)
+                                {
+                                    case RecurrenceType.Daily:
+                                        <span>Every @template.RecurrenceInterval day(s)</span>
+                                        break;
+                                    case RecurrenceType.Weekly:
+                                        <span>Every @template.RecurrenceInterval week(s)</span>
+                                        if (!string.IsNullOrEmpty(template.DaysOfWeek))
+                                        {
+                                            <br><span>On: @GetDayNames(template.DaysOfWeek)</span>
+                                        }
+                                        break;
+                                    case RecurrenceType.Monthly:
+                                        <span>Every @template.RecurrenceInterval month(s)</span>
+                                        break;
+                                    case RecurrenceType.Yearly:
+                                        <span>Every @template.RecurrenceInterval year(s)</span>
+                                        break;
+                                }
+                            </small>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Started:</strong> @template.StartDate.ToString("MMM dd, yyyy")
+                            </small>
+                        </div>
+
+                        @if (template.EndDate.HasValue)
+                        {
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <strong>Ends:</strong> @template.EndDate.Value.ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+                        }
+
+                        @if (template.MaxOccurrences.HasValue)
+                        {
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <strong>Max Tasks:</strong> @template.MaxOccurrences.Value
+                                </small>
+                            </div>
+                        }
+
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Next Due:</strong> @template.NextDueDate.ToString("MMM dd, yyyy")
+                            </small>
+                        </div>
+
+                        <div class="priority-badge">
+                            <span class="badge bg-@GetPriorityColor(template.Priority)">
+                                @template.Priority Priority
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="btn-group w-100 mb-2">
+                            <a asp-action="Edit" asp-route-id="@template.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <form asp-action="ToggleStatus" asp-route-id="@template.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-@(template.IsActive ? "warning" : "success")">
+                                    <i class="fas fa-@(template.IsActive ? "pause" : "play")"></i> 
+                                    @(template.IsActive ? "Pause" : "Resume")
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDelete(@template.Id, '@template.Title')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                        @if (template.IsActive)
+                        {
+                            <form asp-action="GenerateNow" asp-route-id="@template.Id" method="post" class="d-inline w-100">
+                                <button type="submit" class="btn btn-sm btn-outline-info w-100">
+                                    <i class="fas fa-play-circle"></i> Generate Tasks Now
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="fas fa-clock fa-5x text-muted"></i>
+        </div>
+        <h4>No Recurring Tasks Yet</h4>
+        <p class="text-muted">Create your first recurring task to automate repetitive work!</p>
+        <a asp-action="Create" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i> Create Recurring Task
+        </a>
+    </div>
+}
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Recurring Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete "<span id="taskTitle"></span>"?</p>
+                <p class="text-muted small">This will only delete the template. Already generated tasks will remain.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete Template</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(templateId, title) {
+    document.getElementById('taskTitle').textContent = title;
+    document.getElementById('deleteForm').action = '@Url.Action("Delete")/' + templateId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+
+@functions {
+    string GetPriorityColor(Priority priority)
+    {
+        return priority switch
+        {
+            Priority.High => "danger",
+            Priority.Medium => "warning",
+            Priority.Low => "success",
+            _ => "secondary"
+        };
+    }
+    
+    string GetDayNames(string daysOfWeek)
+    {
+        if (string.IsNullOrEmpty(daysOfWeek)) return "";
+        
+        var dayNames = new Dictionary<string, string>
+        {
+            {"0", "Sun"}, {"1", "Mon"}, {"2", "Tue"}, {"3", "Wed"},
+            {"4", "Thu"}, {"5", "Fri"}, {"6", "Sat"}
+        };
+        
+        var days = daysOfWeek.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Where(d => dayNames.ContainsKey(d.Trim()))
+            .Select(d => dayNames[d.Trim()]);
+            
+        return string.Join(", ", days);
+    }
+}
